@@ -1,0 +1,599 @@
+/* ============================================================
+   style.css — Estilos globais do Fin.Control
+   ============================================================ */
+
+/* ── Variáveis ─────────────────────────────────────────── */
+:root {
+  --bg:         #0d0f14;
+  --surface:    #151821;
+  --surface2:   #1c2030;
+  --border:     #252a3a;
+  --accent:     #4fffb0;
+  --accent2:    #ff6b6b;
+  --accent3:    #ffd166;
+  --text:       #e8ecf4;
+  --muted:      #5a6180;
+  --income:     #4fffb0;
+  --expense:    #ff6b6b;
+  --investment: #ffd166;
+  --balance:    #a78bfa;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Base ──────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  padding: 2rem;
+  overflow-x: hidden;
+}
+
+/* Grid decorativo de fundo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,255,176,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,255,176,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  animation: fadeDown 0.6s ease both;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.logo span { color: var(--accent); }
+
+.year-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+}
+
+/* ── Botões de mês ─────────────────────────────────────── */
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+
+.month-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.75rem 0.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.month-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.month-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(79,255,176,0.05);
+}
+.month-btn:hover::after { transform: scaleX(1); }
+
+.month-btn.active {
+  background: rgba(79,255,176,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+.month-btn.active::after { transform: scaleX(1); }
+
+/* Ponto amarelo = mês com dados */
+.month-btn.has-data::before {
+  content: '';
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent3);
+}
+
+/* ── Cards de resumo ───────────────────────────────────── */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.card.income::before     { background: var(--income); }
+.card.expense::before    { background: var(--expense); }
+.card.investment::before { background: var(--investment); }
+.card.balance::before    { background: var(--balance); }
+
+.card-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.card-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+
+.card.income .card-value     { color: var(--income); }
+.card.expense .card-value    { color: var(--expense); }
+.card.investment .card-value { color: var(--investment); }
+.card.balance .card-value    { color: var(--balance); }
+
+/* ── Área principal ────────────────────────────────────── */
+.main-area {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+/* ── Painel genérico ───────────────────────────────────── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Lista de transações ───────────────────────────────── */
+.transaction-list {
+  padding: 0.5rem 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.transaction-list::-webkit-scrollbar       { width: 4px; }
+.transaction-list::-webkit-scrollbar-track { background: transparent; }
+.transaction-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  animation: slideIn 0.3s ease both;
+}
+.transaction-item:last-child { border-bottom: none; }
+.transaction-item:hover      { background: var(--surface2); }
+
+.tx-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.tx-icon.income     { background: rgba(79,255,176,0.1); }
+.tx-icon.expense    { background: rgba(255,107,107,0.1); }
+.tx-icon.investment { background: rgba(255,209,102,0.1); }
+
+.tx-info { flex: 1; min-width: 0; }
+.tx-desc {
+  font-size: 0.88rem; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 0.15rem;
+}
+.tx-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+}
+
+.tx-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem; font-weight: 500;
+  text-align: right; flex-shrink: 0;
+}
+.tx-amount.income     { color: var(--income); }
+.tx-amount.expense    { color: var(--expense); }
+.tx-amount.investment { color: var(--investment); }
+
+.tx-delete {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  font-size: 0.9rem; padding: 0.2rem;
+  opacity: 0; transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+.transaction-item:hover .tx-delete { opacity: 1; }
+.tx-delete:hover { color: var(--expense); }
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.empty-state .emoji { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
+
+/* ── Formulário de lançamento ──────────────────────────── */
+.form-body { padding: 1.4rem; }
+
+.form-group { margin-bottom: 1.1rem; }
+
+.form-label {
+  display: block;
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus,
+.form-select:focus { border-color: var(--accent); }
+.form-select option { background: var(--surface2); }
+
+/* Toggle receita / despesa / investimento */
+.type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.type-btn {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.75rem; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.type-btn.active.income     { background: rgba(79,255,176,0.12);  border-color: var(--income);     color: var(--income); }
+.type-btn.active.expense    { background: rgba(255,107,107,0.12); border-color: var(--expense);    color: var(--expense); }
+.type-btn.active.investment { background: rgba(255,209,102,0.12); border-color: var(--investment); color: var(--investment); }
+
+.btn-submit {
+  width: 100%;
+  background: var(--accent);
+  color: #0d0f14;
+  border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.8rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+.btn-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(79,255,176,0.3);
+}
+
+/* ── Animações ─────────────────────────────────────────── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Responsivo ────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .summary    { grid-template-columns: repeat(2, 1fr); }
+  .main-area  { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .months-grid { grid-template-columns: repeat(4, 1fr); }
+  .summary     { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+  body { padding: 1rem; }
+  .months-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+
+
+
+
+
+/* ── View toggle (header) ───────────────────────────────── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.view-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.view-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.view-btn.active {
+  background: rgba(79,255,176,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.view-btn.active::after {
+  transform: scaleX(1);
+}
+
+/* ── Card Investimento — meta + progresso ──────────────── */
+.card.investment .card-value { color: var(--investment); }
+.investment-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+  margin-top: 0.3rem; margin-bottom: 0.65rem;
+}
+.investment-progress-track {
+  width: 100%; height: 4px;
+  background: var(--border); border-radius: 999px; overflow: hidden;
+}
+.investment-progress-bar {
+  height: 100%; background: var(--investment);
+  border-radius: 999px; transition: width 0.5s ease;
+}
+.card.investment.goal-reached { border-color: var(--income); }
+.card.investment.goal-reached::before { background: var(--income); }
+.card.investment.goal-reached .card-value { color: var(--income); }
+.card.investment.goal-reached .investment-sub { color: var(--income); opacity: 0.8; }
+.card.investment.goal-reached .investment-progress-bar { background: var(--income); }
+
+/* ── Saldo negativo ─────────────────────────────────────── */
+.card.balance.negative { border-color: rgba(255,107,107,0.5); }
+.card.balance.negative::before { background: var(--expense); }
+.card-value.negative-value { color: var(--expense) !important; }
+
+/* ── Status de Saúde Financeira ─────────────────────────── */
+.health-bar {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.9rem 1.4rem;
+  margin-bottom: 1.5rem; position: relative; overflow: hidden;
+  animation: fadeUp 0.6s 0.22s ease both;
+  transition: border-color 0.3s, background 0.3s;
+}
+.health-bar.healthy { border-color: rgba(79,255,176,0.35);  background: rgba(79,255,176,0.04); }
+.health-bar.warning { border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.04); }
+.health-bar.critical{ border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.04); }
+.health-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
+.health-bar.healthy .health-dot  { background: var(--income);     box-shadow: 0 0 8px rgba(79,255,176,0.6); }
+.health-bar.warning .health-dot  { background: var(--investment); box-shadow: 0 0 8px rgba(255,209,102,0.6); }
+.health-bar.critical .health-dot { background: var(--expense);    box-shadow: 0 0 8px rgba(255,107,107,0.6); animation: pulse 1.2s infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.4); }
+}
+.health-info { flex: 1; display: flex; align-items: center; gap: 1rem; }
+.health-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.health-msg { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+.health-gauge { width: 120px; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+.health-gauge-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+.health-bar.healthy  .health-gauge-fill { background: var(--income); }
+.health-bar.warning  .health-gauge-fill { background: var(--investment); }
+.health-bar.critical .health-gauge-fill { background: var(--expense); }
+
+/* ── Ranking ─────────────────────────────────────────────── */
+.ranking-section { margin-bottom: 2rem; animation: fadeUp 0.6s 0.25s ease both; }
+.ranking-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.ranking-title { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.ranking-period { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 0.25rem 0.75rem; border-radius: 999px; }
+.ranking-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.65rem; }
+.ranking-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.85rem; transition: border-color 0.2s; animation: slideIn 0.3s ease both; }
+.ranking-item:hover { border-color: var(--accent2); }
+.ranking-pos { flex-shrink: 0; width: 28px; text-align: center; font-family: 'DM Mono', monospace; color: var(--muted); font-size: 0.8rem; }
+.ranking-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); padding: 4px; flex-shrink: 0; }
+.ranking-logo-fallback { width: 36px; height: 36px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-name { font-size: 0.82rem; font-weight: 600; margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-bar-track { width: 100%; height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.ranking-bar-fill { height: 100%; background: var(--expense); border-radius: 999px; transition: width 0.5s ease; }
+.ranking-item:first-child { border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.05); }
+.ranking-item:first-child .ranking-bar-fill { background: var(--expense); box-shadow: 0 0 8px rgba(255,107,107,0.5); }
+.ranking-total { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; color: var(--expense); flex-shrink: 0; }
+
+/* ── Gerencial — chart ───────────────────────────────────── */
+.g-panel { margin-bottom: 1.5rem; }
+.g-summary { margin-bottom: 1.5rem; }
+.g-chart-wrap { padding: 1.25rem 1.25rem 0.75rem; }
+#gChart { display: block; }
+
+/* ── Gerencial — tabela ─────────────────────────────────── */
+.g-table-wrap { overflow-x: auto; padding: 0 0.5rem 1rem; }
+.g-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.g-table thead tr { border-bottom: 2px solid var(--border); }
+.g-table th {
+  font-family: 'Syne', sans-serif; font-size: 0.68rem;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); padding: 0.8rem 1.25rem; text-align: right;
+}
+.g-table th:first-child { text-align: left; padding-left: 1.5rem; }
+.g-table td { padding: 0.7rem 1.25rem; text-align: right; font-family: 'DM Mono', monospace; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
+.g-table td:first-child { text-align: left; font-family: 'Syne', sans-serif; font-weight: 600; padding-left: 1.5rem; font-size: 0.84rem; }
+.g-table tbody tr:hover { background: var(--surface2); }
+.g-table .row-empty td { opacity: 0.35; }
+.col-income  { color: var(--income); }
+.col-expense { color: var(--expense); }
+.col-invest  { color: var(--investment); }
+.col-balance { color: var(--balance); }
+.col-month   { color: var(--text); }
+
+/* ── Gerencial — investimento grid ─────────────────────── */
+.g-invest-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+.g-invest-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 0.85rem;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.g-invest-item.reached { border-color: rgba(79,255,176,0.4); background: rgba(79,255,176,0.05); }
+.g-invest-item.partial { border-color: rgba(255,209,102,0.3); }
+.g-invest-month { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; display: block; }
+.g-invest-track { width: 100%; height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+.g-invest-fill { height: 100%; background: var(--investment); border-radius: 999px; transition: width 0.5s ease; }
+.g-invest-item.reached .g-invest-fill { background: var(--income); }
+.g-invest-val { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; display: block; }
+.g-invest-item.reached .g-invest-val { color: var(--income); }
+.g-invest-check { position: absolute; top: 6px; right: 8px; font-size: 0.7rem; color: var(--income); }
+
+/* ── Credor ──────────────────────────────────────────────── */
+.credor-select-wrap { display: flex; align-items: center; gap: 0.75rem; }
+.credor-logo-box { width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: 0; transform: scale(0.8); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
+.credor-logo-box.has-logo { opacity: 1; transform: scale(1); pointer-events: auto; }
+.credor-logo-box img { width: 32px; height: 32px; object-fit: contain; }
+.credor-select-wrap .form-select { flex: 1; }
+.tx-credor-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); padding: 4px; flex-shrink: 0; }
+
+/* ── Responsivo ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .g-invest-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 480px) {
+  .g-invest-grid { grid-template-columns: repeat(3, 1fr); }
+  .health-info { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .health-gauge { display: none; }
+}

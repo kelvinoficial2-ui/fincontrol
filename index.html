@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fin.Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FinControl">
+  <meta name="theme-color" content="#0d0f14">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">Fin<span>.</span>Control</div>
+    <div class="header-right">
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnMensal"    onclick="App.setView('mensal')">Mensal</button>
+        <button class="view-btn"        id="btnGerencial" onclick="App.setView('gerencial')">Gerencial</button>
+      </div>
+      <div class="year-badge" id="yearBadge">2026</div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  VIEW: MENSAL                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="viewMensal">
+
+    <div class="months-grid" id="monthsGrid"></div>
+
+    <div class="summary">
+      <div class="card income">
+        <div class="card-label">↑ Receitas</div>
+        <div class="card-value" id="totalIncome">R$ 0,00</div>
+      </div>
+      <div class="card expense">
+        <div class="card-label">↓ Despesas</div>
+        <div class="card-value" id="totalExpense">R$ 0,00</div>
+      </div>
+      <div class="card investment" id="investmentCard">
+        <div class="card-label" id="investmentLabel">◈ Investimentos · Meta: R$ 100,00</div>
+        <div class="card-value" id="totalInvestment">R$ 0,00</div>
+        <div class="investment-sub" id="investmentSub">Faltam R$ 100,00 para a meta</div>
+        <div class="investment-progress-track">
+          <div class="investment-progress-bar" id="investmentBar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="card balance" id="balanceCard">
+        <div class="card-label">⊜ Saldo</div>
+        <div class="card-value" id="totalBalance">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="health-bar empty" id="healthStatus">
+      <div class="health-dot"></div>
+      <div class="health-info">
+        <span class="health-label">Sem dados</span>
+        <span class="health-msg">Adicione seus lançamentos do mês</span>
+      </div>
+    </div>
+
+    <div class="ranking-section" id="rankingSection">
+      <div class="ranking-header">
+        <span class="ranking-title">🔥 Maiores Ofensores</span>
+        <span class="ranking-period" id="rankingPeriod">Janeiro</span>
+      </div>
+      <div class="ranking-list" id="rankingList"></div>
+    </div>
+
+    <div class="main-area">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="transactionTitle">Lançamentos</span>
+        </div>
+        <div class="transaction-list" id="transactionList">
+          <div class="empty-state">
+            <span class="emoji">📂</span>
+            Nenhum lançamento neste mês.<br>Adicione sua primeira transação →
+          </div>
+        </div>
+      </div>
+
+      <div class="panel form-panel">
+        <div class="panel-header">
+          <span class="panel-title">Novo Lançamento</span>
+        </div>
+        <div class="form-body">
+          <div class="type-toggle">
+            <button class="type-btn income active" id="btn-income"     onclick="App.setType('income')">↑ Receita</button>
+            <button class="type-btn expense"       id="btn-expense"    onclick="App.setType('expense')">↓ Despesa</button>
+            <button class="type-btn investment"    id="btn-investment" onclick="App.setType('investment')">◈ Invest.</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Credor</label>
+            <div class="credor-select-wrap">
+              <div class="credor-logo-box" id="credorLogoBox">
+                <img id="credorLogo" src="" alt="">
+              </div>
+              <select class="form-select" id="inputCredor" onchange="App.onCredorChange()">
+                <option value="">— Nenhum —</option>
+                <optgroup label="🏦 Bancos">
+                  <option value="mercadopago">Mercado Pago</option>
+                  <option value="itau">Banco Itaú</option>
+                  <option value="bancodobrasil">Banco do Brasil</option>
+                  <option value="portoseguro">Porto Seguro</option>
+                  <option value="nubank">Nubank</option>
+                </optgroup>
+                <optgroup label="💳 Cartões">
+                  <option value="carrefour">Cartão Carrefour</option>
+                  <option value="bradescard">Bradescard</option>
+                  <option value="willcard">Willcard</option>
+                  <option value="ourocard">Ourocard</option>
+                  <option value="portocard">Portocard</option>
+                  <option value="itaucard">Itaucard</option>
+                  <option value="nucard">Nucard</option>
+                </optgroup>
+                <optgroup label="📦 Diversos">
+                  <option value="claro">Claro</option>
+                  <option value="vivo">Vivo</option>
+                  <option value="suhai">Suhai</option>
+                  <option value="riachuelo">Riachuelo</option>
+                  <option value="outros">Outros</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <input type="text" class="form-input" id="inputDesc" placeholder="Ex: Fatura, Parcela, Salário...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" class="form-input" id="inputAmount" placeholder="0,00" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dia</label>
+            <input type="number" class="form-input" id="inputDay" placeholder="1–31" min="1" max="31">
+          </div>
+          <button class="btn-submit" onclick="App.add()">+ Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /viewMensal -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  VIEW: GERENCIAL                                       -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="viewGerencial" style="display:none">
+
+    <!-- Cards anuais -->
+    <div class="summary g-summary">
+      <div class="card income">
+        <div class="card-label">↑ Total Receitas</div>
+        <div class="card-value" id="gTotalIncome">R$ 0,00</div>
+      </div>
+      <div class="card expense">
+        <div class="card-label">↓ Total Despesas</div>
+        <div class="card-value" id="gTotalExpense">R$ 0,00</div>
+      </div>
+      <div class="card investment">
+        <div class="card-label">◈ Total Investido</div>
+        <div class="card-value" id="gTotalInvestment">R$ 0,00</div>
+        <div class="investment-sub" id="gInvestmentSub"></div>
+        <div class="investment-progress-track">
+          <div class="investment-progress-bar" id="gInvestmentBar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="card balance" id="gBalanceCard">
+        <div class="card-label">⊜ Saldo Anual</div>
+        <div class="card-value" id="gTotalBalance">R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- Gráfico de barras -->
+    <div class="panel g-panel" style="margin-bottom:1.5rem">
+      <div class="panel-header">
+        <span class="panel-title">📊 Receitas vs Despesas — Mês a Mês</span>
+      </div>
+      <div class="g-chart-wrap">
+        <canvas id="gChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabela mensal -->
+    <div class="panel g-panel" style="margin-bottom:1.5rem">
+      <div class="panel-header">
+        <span class="panel-title">📋 Resumo Mensal</span>
+      </div>
+      <div class="g-table-wrap">
+        <table class="g-table" id="gTable"></table>
+      </div>
+    </div>
+
+    <!-- Evolução do investimento -->
+    <div class="panel g-panel" style="margin-bottom:1.5rem">
+      <div class="panel-header">
+        <span class="panel-title">💰 Evolução do Investimento Anual</span>
+      </div>
+      <div class="g-invest-grid" id="gInvestGrid"></div>
+    </div>
+
+    <!-- Ranking anual -->
+    <div class="panel g-panel" style="margin-bottom:2rem">
+      <div class="panel-header">
+        <span class="panel-title">🔥 Ranking Anual de Ofensores</span>
+      </div>
+      <div class="ranking-list" id="gRankingList" style="padding:1rem"></div>
+    </div>
+
+  </div><!-- /viewGerencial -->
+
+</div>
+
+<!-- Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(function(reg) { console.log('[PWA] Service Worker registrado:', reg.scope); })
+        .catch(function(err) { console.warn('[PWA] Falha no registro:', err); });
+    });
+  }
+</script>
+
+<script src="js/credores.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/gerencial.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
