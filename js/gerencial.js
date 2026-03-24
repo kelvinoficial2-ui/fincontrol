@@ -187,8 +187,12 @@ function renderTable(meses) {
   var rows = meses.map(function(m) {
     var neg    = m.s.balance < 0;
     var hasAny = m.s.income > 0 || m.s.expense > 0 || m.s.investment > 0;
-    return '<tr class="' + (hasAny ? '' : 'row-empty') + '">' +
-      '<td class="col-month">' + m.nome + '</td>' +
+    var trAttr = hasAny
+      ? 'class="g-table-row has-data" onclick="App.openMensal(' + m.index + ')" title="Ver detalhes de ' + m.nome + '"'
+      : 'class="g-table-row row-empty"';
+
+    return '<tr ' + trAttr + '>' +
+      '<td class="col-month">' + m.nome + (hasAny ? ' <span class="row-arrow">→</span>' : '') + '</td>' +
       '<td class="col-income">'  + (m.s.income     > 0 ? '+' + formatCurrency(m.s.income)     : '—') + '</td>' +
       '<td class="col-expense">' + (m.s.expense    > 0 ? '-' + formatCurrency(m.s.expense)    : '—') + '</td>' +
       '<td class="col-invest">'  + (m.s.investment > 0 ?      formatCurrency(m.s.investment)   : '—') + '</td>' +
