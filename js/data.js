@@ -1,20 +1,17 @@
 // ============================================================
-//  data.js — Camada de dados (localStorage + Google Sheets)
+//  data.js — Camada de dados
 // ============================================================
 
-var MONTHS      = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-var MONTH_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-// Meses sem acento para o Apps Script
+var MONTHS       = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+var MONTH_FULL   = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var MONTH_SCRIPT = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-var STORAGE_KEY  = 'fincontrol';
+var STORAGE_KEY     = 'fincontrol_v2';
 var INVESTMENT_GOAL = 100;
 
-// ⚠️ Cole aqui a URL gerada ao publicar o Apps Script como Web App
 var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzEEs5401wjLNbemzUv3Zrtym2J6GD0wIIVLihd2i4Vs-wk3vHge5OdvGUdnG2YccDo/exec';
 
-// ── localStorage ───────────────────────────────────────────
+// ── Storage ────────────────────────────────────────────────
 
 function loadData() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
@@ -25,58 +22,135 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function getTransactions(monthIndex) {
-  var data = loadData();
-  var list = data[monthIndex] || [];
-  return list.sort(function(a, b) { return a.day - b.day; });
+function getRootData() {
+  var d = loadData();
+  if (!d.despesas)    d.despesas    = {};
+  if (!d.receitas)    d.receitas    = {};
+  if (!d.investimentos) d.investimentos = {};
+  return d;
 }
 
-function addTransaction(opts) {
-  var data = loadData();
-  if (!data[opts.monthIndex]) data[opts.monthIndex] = [];
-  data[opts.monthIndex].push({
+// ── DÍVIDAS (Despesas) ─────────────────────────────────────
+
+function getDebts(monthIndex) {
+  var d = getRootData();
+  return (d.despesas[monthIndex] || []).sort(function(a,b){ return a.day - b.day; });
+}
+
+function addDebtData(opts) {
+  var d = getRootData();
+  if (!d.despesas[opts.monthIndex]) d.despesas[opts.monthIndex] = [];
+  d.despesas[opts.monthIndex].push({
     id:       Date.now(),
     desc:     opts.desc,
     amount:   opts.amount,
-    type:     opts.type,
     day:      opts.day,
-    credorId: opts.credorId || null
+    credorId: opts.credorId || null,
+    paid:     false
   });
-  saveData(data);
-
-  // Sincroniza com Sheets após salvar
-  syncToSheets(opts.monthIndex);
+  saveData(d);
+  syncDebtsToSheets(opts.monthIndex);
 }
 
-function deleteTransaction(monthIndex, id) {
-  var data = loadData();
-  data[monthIndex] = (data[monthIndex] || []).filter(function(t) { return t.id !== id; });
-  saveData(data);
-
-  // Sincroniza com Sheets após deletar
-  syncToSheets(monthIndex);
+function deleteDebtData(monthIndex, id) {
+  var d = getRootData();
+  d.despesas[monthIndex] = (d.despesas[monthIndex] || []).filter(function(t){ return t.id !== id; });
+  saveData(d);
+  syncDebtsToSheets(monthIndex);
 }
+
+function toggleDebtPaid(monthIndex, id) {
+  var d = getRootData();
+  (d.despesas[monthIndex] || []).forEach(function(t) {
+    if (t.id === id) t.paid = !t.paid;
+  });
+  saveData(d);
+  syncDebtsToSheets(monthIndex);
+}
+
+function getDebtSummary(monthIndex) {
+  var debts = getDebts(monthIndex);
+  var total  = 0, paid = 0;
+  debts.forEach(function(t) {
+    total += t.amount;
+    if (t.paid) paid += t.amount;
+  });
+  return { total: total, paid: paid, remaining: total - paid };
+}
+
+function hasDebtData(monthIndex) {
+  var d = getRootData();
+  return !!(d.despesas[monthIndex] && d.despesas[monthIndex].length > 0);
+}
+
+// ── RECEITAS ───────────────────────────────────────────────
+
+function getIncomes(monthIndex) {
+  var d = getRootData();
+  return (d.receitas[monthIndex] || []).sort(function(a,b){ return a.day - b.day; });
+}
+
+function addIncomeData(opts) {
+  var d = getRootData();
+  if (!d.receitas[opts.monthIndex]) d.receitas[opts.monthIndex] = [];
+  d.receitas[opts.monthIndex].push({
+    id: Date.now(), desc: opts.desc, amount: opts.amount,
+    day: opts.day, credorId: opts.credorId || null
+  });
+  saveData(d);
+}
+
+function deleteIncomeData(monthIndex, id) {
+  var d = getRootData();
+  d.receitas[monthIndex] = (d.receitas[monthIndex] || []).filter(function(t){ return t.id !== id; });
+  saveData(d);
+}
+
+function getIncomeSummary(monthIndex) {
+  return getIncomes(monthIndex).reduce(function(s,t){ return s + t.amount; }, 0);
+}
+
+// ── INVESTIMENTOS ──────────────────────────────────────────
+
+function getInvestments(monthIndex) {
+  var d = getRootData();
+  return (d.investimentos[monthIndex] || []).sort(function(a,b){ return a.day - b.day; });
+}
+
+function addInvestmentData(opts) {
+  var d = getRootData();
+  if (!d.investimentos[opts.monthIndex]) d.investimentos[opts.monthIndex] = [];
+  d.investimentos[opts.monthIndex].push({
+    id: Date.now(), desc: opts.desc, amount: opts.amount, day: opts.day
+  });
+  saveData(d);
+}
+
+function deleteInvestmentData(monthIndex, id) {
+  var d = getRootData();
+  d.investimentos[monthIndex] = (d.investimentos[monthIndex] || []).filter(function(t){ return t.id !== id; });
+  saveData(d);
+}
+
+function getInvestmentTotal(monthIndex) {
+  return getInvestments(monthIndex).reduce(function(s,t){ return s + t.amount; }, 0);
+}
+
+// ── Sumário geral por mês (para o Gerencial) ───────────────
 
 function getSummary(monthIndex) {
-  var txs = getTransactions(monthIndex);
-  var income = 0, expense = 0, investment = 0;
-  txs.forEach(function(t) {
-    if (t.type === 'income')     income     += t.amount;
-    if (t.type === 'expense')    expense    += t.amount;
-    if (t.type === 'investment') investment += t.amount;
-  });
+  var income     = getIncomeSummary(monthIndex);
+  var summary    = getDebtSummary(monthIndex);
+  var investment = getInvestmentTotal(monthIndex);
   return {
     income:     income,
-    expense:    expense,
+    expense:    summary.total,
     investment: investment,
-    balance:    income - expense  // investimento NÃO entra no saldo
+    balance:    income - summary.total
   };
 }
 
-function hasData(monthIndex) {
-  var data = loadData();
-  return !!(data[monthIndex] && data[monthIndex].length > 0);
-}
+// ── Utilitários ────────────────────────────────────────────
 
 function formatCurrency(v) {
   return 'R$ ' + Math.abs(v).toFixed(2)
@@ -84,34 +158,33 @@ function formatCurrency(v) {
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// ── Sincronização com Google Sheets ────────────────────────
+// ── Sync Sheets ────────────────────────────────────────────
 
-function syncToSheets(monthIndex) {
-  if (!APPS_SCRIPT_URL) return; // URL não configurada ainda
-
-  var s   = getSummary(monthIndex);
+function syncDebtsToSheets(monthIndex) {
+  if (!APPS_SCRIPT_URL) return;
+  var s   = getDebtSummary(monthIndex);
+  var inc = getIncomeSummary(monthIndex);
+  var inv = getInvestmentTotal(monthIndex);
   var ano = new Date().getFullYear();
   var mes = MONTH_SCRIPT[monthIndex];
 
-  var payload = {
-    ano:          ano,
-    mes:          mes,
-    salario:      s.income,
-    investimento: s.investment,
-    despesas:     s.expense
-  };
-
-  // mode: 'no-cors' necessário por causa do redirect do Apps Script
   fetch(APPS_SCRIPT_URL, {
-    method:      'POST',
-    mode:        'no-cors',
-    headers:     { 'Content-Type': 'application/json' },
-    body:        JSON.stringify(payload)
-  })
-  .then(function() {
-    console.log('[Sheets] Sincronizado: ' + mes + '/' + ano);
-  })
-  .catch(function(err) {
-    console.warn('[Sheets] Falha na conexão:', err);
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ano: ano, mes: mes, salario: inc, investimento: inv, despesas: s.total })
+  }).then(function() {
+    console.log('[Sheets] Sincronizado: ' + mes);
+  }).catch(function(err) {
+    console.warn('[Sheets] Erro:', err);
   });
+}
+
+function hasIncomeData(monthIndex) {
+  var d = getRootData();
+  return !!(d.receitas[monthIndex] && d.receitas[monthIndex].length > 0);
+}
+
+function hasInvestimentoData(monthIndex) {
+  var d = getRootData();
+  return !!(d.investimentos[monthIndex] && d.investimentos[monthIndex].length > 0);
 }
