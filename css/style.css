@@ -401,120 +401,354 @@ header {
 
 
 
-/* ── View toggle (header) ───────────────────────────────── */
+
+/* ── Ticker de Cotações ──────────────────────────────────── */
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  padding: 0.5rem 0;
+  position: relative;
+  animation: fadeDown 0.5s ease both;
+}
+
+/* Degradê nas bordas */
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker-wrap::before { left: 0;  background: linear-gradient(to right, var(--surface), transparent); }
+.ticker-wrap::after  { right: 0; background: linear-gradient(to left,  var(--surface), transparent); }
+
+.ticker-track { overflow: hidden; }
+
+.ticker-inner {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: tickerScroll linear infinite;
+  will-change: transform;
+}
+
+@keyframes tickerScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+}
+
+.ticker-symbol {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.ticker-price {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.ticker-change {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.ticker-item.up   .ticker-change { color: var(--income); }
+.ticker-item.down .ticker-change { color: var(--expense); }
+.ticker-item.flat .ticker-change { color: var(--muted); }
+
+.ticker-sep {
+  color: var(--border);
+  font-size: 0.7rem;
+  padding: 0 0.25rem;
+}
+
+.ticker-loading {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 0 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+.ticker-offline { opacity: 0.5; }
+
+/* ── Nav principal ──────────────────────────────────────── */
 .header-right {
   display: flex;
   align-items: center;
   gap: 1.25rem;
 }
 
-.view-toggle {
+.main-nav {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
 }
 
-.view-btn {
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-btn:hover { color: var(--text); background: var(--surface2); }
+
+.nav-btn.active {
+  background: rgba(79,255,176,0.12);
+  color: var(--accent);
+  border: 1px solid rgba(79,255,176,0.3);
+}
+
+/* ── Section intro ───────────────────────────────────────── */
+.section-intro {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.section-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ── Detail header (breadcrumb) ──────────────────────────── */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  animation: fadeDown 0.4s ease both;
+}
+
+.back-btn {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--muted);
   font-family: 'Syne', sans-serif;
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.5rem 1.25rem;
-  border-radius: 10px;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  position: relative;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.detail-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  flex: 1;
+}
+
+/* ── Cards de dívidas ────────────────────────────────────── */
+.debt-summary { grid-template-columns: repeat(3, 1fr); }
+
+.card.debt-total::before     { background: var(--expense); }
+.card.debt-total .card-value { color: var(--expense); }
+
+.card.debt-remaining::before     { background: var(--accent3); }
+.card.debt-remaining .card-value { color: var(--accent3); }
+
+.card.debt-paid::before     { background: var(--income); }
+.card.debt-paid .card-value { color: var(--income); }
+
+/* ── Barra de progresso pagamento ────────────────────────── */
+.payment-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.5s 0.2s ease both;
+}
+
+.payment-progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 999px;
   overflow: hidden;
 }
 
-.view-btn::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transition: transform 0.25s ease;
+.payment-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--income), #2dd4a0);
+  border-radius: 999px;
+  transition: width 0.6s ease;
 }
 
-.view-btn:hover {
-  color: var(--text);
-  border-color: var(--accent);
-}
-
-.view-btn.active {
-  background: rgba(79,255,176,0.1);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.view-btn.active::after {
-  transform: scaleX(1);
-}
-
-/* ── Card Investimento — meta + progresso ──────────────── */
-.card.investment .card-value { color: var(--investment); }
-.investment-sub {
+.payment-progress-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem; color: var(--muted);
-  margin-top: 0.3rem; margin-bottom: 0.65rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
 }
-.investment-progress-track {
-  width: 100%; height: 4px;
-  background: var(--border); border-radius: 999px; overflow: hidden;
-}
-.investment-progress-bar {
-  height: 100%; background: var(--investment);
-  border-radius: 999px; transition: width 0.5s ease;
-}
-.card.investment.goal-reached { border-color: var(--income); }
-.card.investment.goal-reached::before { background: var(--income); }
-.card.investment.goal-reached .card-value { color: var(--income); }
-.card.investment.goal-reached .investment-sub { color: var(--income); opacity: 0.8; }
-.card.investment.goal-reached .investment-progress-bar { background: var(--income); }
 
-/* ── Saldo negativo ─────────────────────────────────────── */
+/* ── Lista de dívidas ────────────────────────────────────── */
+.debt-list {
+  padding: 0.5rem 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.debt-list::-webkit-scrollbar { width: 4px; }
+.debt-list::-webkit-scrollbar-track { background: transparent; }
+.debt-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.debt-item {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1.5rem;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  animation: slideIn 0.3s ease both;
+}
+.debt-item:last-child { border-bottom: none; }
+.debt-item:hover { background: var(--surface2); }
+
+/* Item pago */
+.debt-item.paid { opacity: 0.6; }
+.debt-item.paid .tx-desc { text-decoration: line-through; color: var(--income); }
+.debt-item.paid .tx-date { text-decoration: line-through; }
+
+.debt-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--expense);
+  flex-shrink: 0;
+}
+.debt-amount.paid { color: var(--income); text-decoration: line-through; }
+
+/* Botão de check */
+.check-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.check-btn:hover { border-color: var(--income); color: var(--income); }
+.check-btn.checked {
+  background: rgba(79,255,176,0.15);
+  border-color: var(--income);
+  color: var(--income);
+}
+
+.tx-delete {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  font-size: 0.9rem; padding: 0.2rem;
+  opacity: 0; transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+.debt-item:hover .tx-delete { opacity: 1; }
+.tx-delete:hover { color: var(--expense); }
+
+/* ── Coming soon ─────────────────────────────────────────── */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  animation: fadeUp 0.5s ease both;
+}
+.coming-icon  { font-size: 3rem; }
+.coming-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+.coming-sub   { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+
+/* ── Card Investimento ───────────────────────────────────── */
+.card.investment .card-value { color: var(--investment); }
+.investment-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; margin-bottom: 0.65rem; }
+.investment-progress-track { width: 100%; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.investment-progress-bar { height: 100%; background: var(--investment); border-radius: 999px; transition: width 0.5s ease; }
+
+/* ── Saldo negativo ─────────────────────────────────────────── */
 .card.balance.negative { border-color: rgba(255,107,107,0.5); }
 .card.balance.negative::before { background: var(--expense); }
 .card-value.negative-value { color: var(--expense) !important; }
 
-/* ── Status de Saúde Financeira ─────────────────────────── */
-.health-bar {
-  display: flex; align-items: center; gap: 1rem;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 0.9rem 1.4rem;
-  margin-bottom: 1.5rem; position: relative; overflow: hidden;
-  animation: fadeUp 0.6s 0.22s ease both;
-  transition: border-color 0.3s, background 0.3s;
-}
-.health-bar.healthy { border-color: rgba(79,255,176,0.35);  background: rgba(79,255,176,0.04); }
-.health-bar.warning { border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.04); }
-.health-bar.critical{ border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.04); }
-.health-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
-.health-bar.healthy .health-dot  { background: var(--income);     box-shadow: 0 0 8px rgba(79,255,176,0.6); }
-.health-bar.warning .health-dot  { background: var(--investment); box-shadow: 0 0 8px rgba(255,209,102,0.6); }
-.health-bar.critical .health-dot { background: var(--expense);    box-shadow: 0 0 8px rgba(255,107,107,0.6); animation: pulse 1.2s infinite; }
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(1.4); }
-}
-.health-info { flex: 1; display: flex; align-items: center; gap: 1rem; }
-.health-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
-.health-msg { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
-.health-gauge { width: 120px; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
-.health-gauge-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
-.health-bar.healthy  .health-gauge-fill { background: var(--income); }
-.health-bar.warning  .health-gauge-fill { background: var(--investment); }
-.health-bar.critical .health-gauge-fill { background: var(--expense); }
+/* ── Gerencial ───────────────────────────────────────────── */
+.g-panel { margin-bottom: 1.5rem; }
+.g-summary { margin-bottom: 1.5rem; }
+.g-chart-wrap { padding: 1.25rem 1.25rem 0.75rem; }
+#gChart { display: block; }
+.g-table-wrap { overflow-x: auto; padding: 0 0.5rem 1rem; }
+.g-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.g-table thead tr { border-bottom: 2px solid var(--border); }
+.g-table th { font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.8rem 1.25rem; text-align: right; }
+.g-table th:first-child { text-align: left; padding-left: 1.5rem; }
+.g-table td { padding: 0.7rem 1.25rem; text-align: right; font-family: 'DM Mono', monospace; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
+.g-table td:first-child { text-align: left; font-family: 'Syne', sans-serif; font-weight: 600; padding-left: 1.5rem; }
+.g-table tbody tr:hover { background: var(--surface2); }
+.g-table .row-empty td { opacity: 0.35; }
+.col-income { color: var(--income); }
+.col-expense { color: var(--expense); }
+.col-invest { color: var(--investment); }
+.col-balance { color: var(--balance); }
+.g-invest-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; padding: 1.25rem; }
+.g-invest-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 0.85rem; position: relative; transition: border-color 0.2s; }
+.g-invest-item.reached { border-color: rgba(79,255,176,0.4); background: rgba(79,255,176,0.05); }
+.g-invest-item.partial { border-color: rgba(255,209,102,0.3); }
+.g-invest-month { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; display: block; }
+.g-invest-track { width: 100%; height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+.g-invest-fill { height: 100%; background: var(--investment); border-radius: 999px; transition: width 0.5s ease; }
+.g-invest-item.reached .g-invest-fill { background: var(--income); }
+.g-invest-val { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; display: block; }
+.g-invest-item.reached .g-invest-val { color: var(--income); }
+.g-invest-check { position: absolute; top: 6px; right: 8px; font-size: 0.7rem; color: var(--income); }
 
 /* ── Ranking ─────────────────────────────────────────────── */
-.ranking-section { margin-bottom: 2rem; animation: fadeUp 0.6s 0.25s ease both; }
-.ranking-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.ranking-title { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.ranking-period { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 0.25rem 0.75rem; border-radius: 999px; }
 .ranking-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.65rem; }
 .ranking-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.85rem; transition: border-color 0.2s; animation: slideIn 0.3s ease both; }
 .ranking-item:hover { border-color: var(--accent2); }
@@ -529,57 +763,6 @@ header {
 .ranking-item:first-child .ranking-bar-fill { background: var(--expense); box-shadow: 0 0 8px rgba(255,107,107,0.5); }
 .ranking-total { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; color: var(--expense); flex-shrink: 0; }
 
-/* ── Gerencial — chart ───────────────────────────────────── */
-.g-panel { margin-bottom: 1.5rem; }
-.g-summary { margin-bottom: 1.5rem; }
-.g-chart-wrap { padding: 1.25rem 1.25rem 0.75rem; }
-#gChart { display: block; }
-
-/* ── Gerencial — tabela ─────────────────────────────────── */
-.g-table-wrap { overflow-x: auto; padding: 0 0.5rem 1rem; }
-.g-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.g-table thead tr { border-bottom: 2px solid var(--border); }
-.g-table th {
-  font-family: 'Syne', sans-serif; font-size: 0.68rem;
-  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--muted); padding: 0.8rem 1.25rem; text-align: right;
-}
-.g-table th:first-child { text-align: left; padding-left: 1.5rem; }
-.g-table td { padding: 0.7rem 1.25rem; text-align: right; font-family: 'DM Mono', monospace; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
-.g-table td:first-child { text-align: left; font-family: 'Syne', sans-serif; font-weight: 600; padding-left: 1.5rem; font-size: 0.84rem; }
-.g-table tbody tr:hover { background: var(--surface2); }
-.g-table .row-empty td { opacity: 0.35; }
-.col-income  { color: var(--income); }
-.col-expense { color: var(--expense); }
-.col-invest  { color: var(--investment); }
-.col-balance { color: var(--balance); }
-.col-month   { color: var(--text); }
-
-/* ── Gerencial — investimento grid ─────────────────────── */
-.g-invest-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.75rem;
-  padding: 1.25rem;
-}
-.g-invest-item {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.9rem 0.85rem;
-  position: relative;
-  transition: border-color 0.2s;
-}
-.g-invest-item.reached { border-color: rgba(79,255,176,0.4); background: rgba(79,255,176,0.05); }
-.g-invest-item.partial { border-color: rgba(255,209,102,0.3); }
-.g-invest-month { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; display: block; }
-.g-invest-track { width: 100%; height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
-.g-invest-fill { height: 100%; background: var(--investment); border-radius: 999px; transition: width 0.5s ease; }
-.g-invest-item.reached .g-invest-fill { background: var(--income); }
-.g-invest-val { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; display: block; }
-.g-invest-item.reached .g-invest-val { color: var(--income); }
-.g-invest-check { position: absolute; top: 6px; right: 8px; font-size: 0.7rem; color: var(--income); }
-
 /* ── Credor ──────────────────────────────────────────────── */
 .credor-select-wrap { display: flex; align-items: center; gap: 0.75rem; }
 .credor-logo-box { width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: 0; transform: scale(0.8); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
@@ -587,13 +770,343 @@ header {
 .credor-logo-box img { width: 32px; height: 32px; object-fit: contain; }
 .credor-select-wrap .form-select { flex: 1; }
 .tx-credor-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); padding: 4px; flex-shrink: 0; }
+.tx-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.tx-icon.expense { background: rgba(255,107,107,0.1); color: var(--expense); }
+.tx-info { flex: 1; min-width: 0; }
+.tx-desc { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.15rem; }
+.tx-date { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
 
-/* ── Responsivo ─────────────────────────────────────────── */
-@media (max-width: 700px) {
+/* ── Mensal — layouts ────────────────────────────────────── */
+.mensal-row {
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 1rem;
+}
+
+.mensal-invest-pct-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+.mensal-invest-pct-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--investment);
+  background: rgba(255,209,102,0.08);
+  border: 1px solid rgba(255,209,102,0.25);
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+}
+.mensal-invest-pct-badge span {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* 3 painéis lado a lado */
+.mensal-panels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+
+
+/* Status badges na lista mensal */
+.debt-status-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.debt-status-badge.paid {
+  background: rgba(79,255,176,0.12);
+  color: var(--income);
+  border: 1px solid rgba(79,255,176,0.3);
+}
+.debt-status-badge.pending {
+  background: rgba(255,209,102,0.1);
+  color: var(--accent3);
+  border: 1px solid rgba(255,209,102,0.25);
+}
+
+/* Ranking right side */
+.ranking-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+.ranking-paid-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--income);
+  background: rgba(79,255,176,0.1);
+  border: 1px solid rgba(79,255,176,0.2);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+}
+
+/* Tabela gerencial — linha clicável */
+.g-table-row { cursor: default; }
+.g-table-row.has-data {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.g-table-row.has-data:hover { background: var(--surface2); }
+.g-table-row.has-data:hover .row-arrow { opacity: 1; }
+.row-arrow {
+  font-size: 0.7rem;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-left: 0.4rem;
+}
+
+/* Saúde financeira */
+.health-bar {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.9rem 1.4rem;
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s, background 0.3s;
+}
+.health-bar.healthy { border-color: rgba(79,255,176,0.35);  background: rgba(79,255,176,0.04); }
+.health-bar.warning { border-color: rgba(255,209,102,0.35); background: rgba(255,209,102,0.04); }
+.health-bar.critical{ border-color: rgba(255,107,107,0.35); background: rgba(255,107,107,0.04); }
+.health-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
+.health-bar.healthy .health-dot  { background: var(--income);     box-shadow: 0 0 8px rgba(79,255,176,0.6); }
+.health-bar.warning .health-dot  { background: var(--investment); box-shadow: 0 0 8px rgba(255,209,102,0.6); }
+.health-bar.critical .health-dot { background: var(--expense);    box-shadow: 0 0 8px rgba(255,107,107,0.6); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+.health-info { flex: 1; display: flex; align-items: center; gap: 1rem; }
+.health-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+.health-msg { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+.health-gauge { width: 120px; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+.health-gauge-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+.health-bar.healthy  .health-gauge-fill { background: var(--income); }
+.health-bar.warning  .health-gauge-fill { background: var(--investment); }
+.health-bar.critical .health-gauge-fill { background: var(--expense); }
+
+/* ── Receitas ────────────────────────────────────────────── */
+.receitas-summary {
+  grid-template-columns: repeat(2, 1fr);
+  margin-bottom: 2rem;
+}
+
+.tx-icon.income { background: rgba(79,255,176,0.1); color: var(--income); }
+
+.income-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--income);
+  flex-shrink: 0;
+}
+
+/* ── Investimento — Card Anual ───────────────────────────── */
+.invest-annual-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.5s ease both;
+  transition: border-color 0.3s;
+}
+.invest-annual-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--investment);
+  transition: background 0.3s;
+}
+.invest-annual-card.partial::before { background: var(--investment); }
+.invest-annual-card.over::before    { background: var(--income); }
+.invest-annual-card.over { border-color: rgba(79,255,176,0.3); }
+
+.invest-annual-left { flex: 1; }
+.invest-annual-label {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+.invest-annual-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 2rem; font-weight: 500;
+  color: var(--investment); letter-spacing: -1px;
+}
+.invest-annual-card.over .invest-annual-value { color: var(--income); }
+.invest-annual-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem;
+}
+
+.invest-annual-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.invest-annual-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 2rem; font-weight: 500;
+  color: var(--investment); letter-spacing: -1px;
+}
+.invest-annual-card.over .invest-annual-pct { color: var(--income); }
+.invest-annual-track {
+  width: 100%; height: 6px;
+  background: var(--border);
+  border-radius: 999px; overflow: hidden;
+}
+.invest-annual-bar {
+  height: 100%;
+  background: var(--investment);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+.invest-annual-card.over .invest-annual-bar { background: var(--income); }
+.invest-annual-months {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+}
+
+/* ── Investimento — Card Meta Mensal ─────────────────────── */
+.invest-goal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.4s ease both;
+  transition: border-color 0.3s, background 0.3s;
+}
+.invest-goal-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: var(--investment);
+}
+.invest-goal-card.reached::before { background: var(--income); }
+.invest-goal-card.over::before    { background: var(--income); box-shadow: 0 0 12px rgba(79,255,176,0.5); }
+.invest-goal-card.reached { border-color: rgba(79,255,176,0.25); background: rgba(79,255,176,0.02); }
+.invest-goal-card.over    { border-color: rgba(79,255,176,0.4);  background: rgba(79,255,176,0.04); }
+
+.invest-goal-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.invest-goal-info { flex: 1; }
+.invest-goal-label {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.4rem;
+}
+.invest-goal-card.reached .invest-goal-label { color: var(--income); }
+.invest-goal-card.over    .invest-goal-label { color: var(--income); }
+.invest-goal-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 2rem; font-weight: 500;
+  color: var(--investment); letter-spacing: -1px;
+}
+.invest-goal-card.reached .invest-goal-value { color: var(--income); }
+.invest-goal-card.over    .invest-goal-value { color: var(--income); }
+.invest-goal-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem;
+}
+.invest-goal-card.over .invest-goal-sub { color: var(--income); opacity: 0.8; }
+
+.invest-goal-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 2.5rem; font-weight: 500;
+  color: var(--investment); letter-spacing: -2px;
+  line-height: 1;
+}
+.invest-goal-pct.reached { color: var(--income); }
+
+/* Barra com marcador de meta */
+.invest-goal-track {
+  width: 100%; height: 8px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: visible;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+.invest-goal-bar {
+  height: 100%; border-radius: 999px;
+  background: var(--investment);
+  transition: width 0.6s ease;
+  position: relative;
+}
+.invest-goal-card.reached .invest-goal-bar,
+.invest-goal-card.over    .invest-goal-bar { background: var(--income); box-shadow: 0 0 10px rgba(79,255,176,0.4); }
+
+/* Marcador de meta (50% da barra = 100% da meta) */
+.invest-goal-marker {
+  position: absolute;
+  top: -4px; left: 50%;
+  width: 2px; height: 16px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 1px;
+}
+
+.invest-goal-legend {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem; color: var(--muted);
+}
+.invest-goal-meta-label { color: rgba(255,255,255,0.3); }
+
+/* Item da lista de investimentos */
+.tx-icon.investment { background: rgba(255,209,102,0.1); color: var(--investment); }
+.invest-item-amount {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem; font-weight: 500;
+  color: var(--investment); flex-shrink: 0;
+}
+.invest-item-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem; color: var(--muted);
+  background: rgba(255,209,102,0.08);
+  border: 1px solid rgba(255,209,102,0.2);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px; flex-shrink: 0;
+}
+
+/* ── Responsivo ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .debt-summary { grid-template-columns: repeat(3, 1fr); }
+  .main-area { grid-template-columns: 1fr; }
+  .mensal-panels { grid-template-columns: 1fr; }
+  .mensal-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .months-grid { grid-template-columns: repeat(4, 1fr); }
+  .main-nav { gap: 0.25rem; }
+  .nav-btn { padding: 0.4rem 0.65rem; font-size: 0.68rem; }
+  .debt-summary { grid-template-columns: 1fr 1fr; }
   .g-invest-grid { grid-template-columns: repeat(4, 1fr); }
 }
-@media (max-width: 480px) {
+@media (max-width: 420px) {
+  body { padding: 1rem; }
+  .months-grid { grid-template-columns: repeat(3, 1fr); }
+  .debt-summary { grid-template-columns: 1fr; }
   .g-invest-grid { grid-template-columns: repeat(3, 1fr); }
-  .health-info { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
-  .health-gauge { display: none; }
 }
