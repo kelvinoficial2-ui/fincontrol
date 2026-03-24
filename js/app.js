@@ -4,86 +4,242 @@
 
 var App = (function() {
 
-  var activeMonth = new Date().getMonth();
-  var currentType = 'income';
-  var currentView = 'mensal';
+  var activeTab           = 'despesas';
+  var activeDespesasMonth = new Date().getMonth();
+  var activeReceitasMonth      = new Date().getMonth();
+  var activeInvestimentoMonth  = new Date().getMonth();
+
+  // ── Init ─────────────────────────────────────────────────
 
   function init() {
     document.getElementById('yearBadge').textContent = new Date().getFullYear();
-    buildMonthButtons(activeMonth, selectMonth);
-    selectMonth(activeMonth);
-    updateMonthDots();
+    buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
+    initTicker();
+    buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
+    buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
+    setTab('despesas');
   }
 
-  // ── Troca de view ────────────────────────────────────────
+  // ── Navegação entre abas ─────────────────────────────────
 
-  function setView(view) {
-    currentView = view;
-    document.getElementById('viewMensal').style.display    = view === 'mensal'    ? 'block' : 'none';
-    document.getElementById('viewGerencial').style.display = view === 'gerencial' ? 'block' : 'none';
-    document.getElementById('btnMensal').className    = 'view-btn' + (view === 'mensal'    ? ' active' : '');
-    document.getElementById('btnGerencial').className = 'view-btn' + (view === 'gerencial' ? ' active' : '');
-
-    if (view === 'gerencial') renderGerencial();
+  function setTab(tab) {
+    activeTab = tab;
+    // inclui 'mensal' para garantir que some ao trocar de aba
+    var tabs = ['despesas','receitas','investimento','gerencial','mensal'];
+    tabs.forEach(function(t) {
+      var el  = document.getElementById('tab-' + t);
+      var btn = document.getElementById('nav-' + t);
+      if (el)  el.style.display  = (t === tab) ? 'block' : 'none';
+      if (btn) btn.className = 'nav-btn' + (t === tab ? ' active' : '');
+    });
+    if (tab === 'gerencial')    renderGerencial();
+    if (tab === 'investimento') renderAnnualInvestCard();
   }
 
-  // ── Mensal ───────────────────────────────────────────────
+  // ── DESPESAS — seleção de mês ────────────────────────────
 
-  function selectMonth(i) {
-    activeMonth = i;
-    setActiveMonthButton(i);
-    renderTransactions(i);
-    updateSummaryCards(i);
-    renderRanking(i);
+  function selectDespesasMonth(i) {
+    activeDespesasMonth = i;
+    document.getElementById('despesas-months-view').style.display = 'none';
+    document.getElementById('despesas-detail-view').style.display = 'block';
+    document.getElementById('despesasMonthTitle').textContent = MONTH_FULL[i];
+    document.getElementById('despesasYearBadge').textContent  = new Date().getFullYear();
+    renderDebtCards(i);
+    renderDebtList(i);
   }
 
-  function setType(type) {
-    currentType = type;
-    setTypeActive(type);
-  }
-
-  function onCredorChange() {
-    var credorId = document.getElementById('inputCredor').value;
-    updateCredorLogoPreview(credorId);
-    if (credorId) {
-      var credor    = getCredorById(credorId);
-      var inputDesc = document.getElementById('inputDesc');
-      if (credor && !inputDesc.value.trim()) inputDesc.value = credor.nome;
+  function backToMonths(section) {
+    if (section === 'despesas') {
+      document.getElementById('despesas-detail-view').style.display = 'none';
+      document.getElementById('despesas-months-view').style.display = 'block';
+      buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
+    initTicker();
+    }
+    if (section === 'receitas') {
+      document.getElementById('receitas-detail-view').style.display = 'none';
+      document.getElementById('receitas-months-view').style.display = 'block';
+      buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
+    }
+    if (section === 'investimento') {
+      document.getElementById('investimento-detail-view').style.display = 'none';
+      document.getElementById('investimento-months-view').style.display = 'block';
+      buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
+      renderAnnualInvestCard();
     }
   }
 
-  function add() {
-    var desc     = document.getElementById('inputDesc').value.trim();
-    var amount   = parseFloat(document.getElementById('inputAmount').value);
-    var day      = parseInt(document.getElementById('inputDay').value) || new Date().getDate();
-    var credorId = document.getElementById('inputCredor').value || null;
+  // ── Credor preview ───────────────────────────────────────
 
-    if (!desc)                        { shakeInput('inputDesc');   return; }
-    if (isNaN(amount) || amount <= 0) { shakeInput('inputAmount'); return; }
-
-    addTransaction({ monthIndex: activeMonth, desc: desc, amount: amount, type: currentType, day: day, credorId: credorId });
-
-    document.getElementById('inputDesc').value   = '';
-    document.getElementById('inputAmount').value = '';
-    document.getElementById('inputDay').value    = '';
-    document.getElementById('inputCredor').value = '';
-    updateCredorLogoPreview(null);
-
-    renderTransactions(activeMonth);
-    updateSummaryCards(activeMonth);
-    updateMonthDots();
-    renderRanking(activeMonth);
+  function onDebtCredorChange() {
+    var credorId = document.getElementById('debtCredor').value;
+    updateDebtCredorPreview(credorId);
+    if (credorId) {
+      var credor = getCredorById(credorId);
+      var desc   = document.getElementById('debtDesc');
+      if (credor && !desc.value.trim()) desc.value = credor.nome;
+    }
   }
 
-  function remove(id) {
-    deleteTransaction(activeMonth, id);
-    renderTransactions(activeMonth);
-    updateSummaryCards(activeMonth);
-    updateMonthDots();
-    renderRanking(activeMonth);
+  // ── Adicionar dívida ─────────────────────────────────────
+
+  function submitDebt() {
+    var desc     = document.getElementById('debtDesc').value.trim();
+    var amount   = parseFloat(document.getElementById('debtAmount').value);
+    var day      = parseInt(document.getElementById('debtDay').value) || 1;
+    var credorId = document.getElementById('debtCredor').value || null;
+
+    if (!desc)                        { shakeInput('debtDesc');   return; }
+    if (isNaN(amount) || amount <= 0) { shakeInput('debtAmount'); return; }
+
+    addDebtData({ monthIndex: activeDespesasMonth, desc: desc, amount: amount, day: day, credorId: credorId });
+
+    document.getElementById('debtDesc').value   = '';
+    document.getElementById('debtAmount').value = '';
+    document.getElementById('debtDay').value    = '';
+    document.getElementById('debtCredor').value = '';
+    updateDebtCredorPreview(null);
+
+    renderDebtCards(activeDespesasMonth);
+    renderDebtList(activeDespesasMonth);
+    buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
+    initTicker();
   }
 
-  return { init: init, setView: setView, selectMonth: selectMonth, setType: setType, onCredorChange: onCredorChange, add: add, remove: remove };
+  // ── Remover dívida ───────────────────────────────────────
+
+  function removeDebt(id) {
+    deleteDebtData(activeDespesasMonth, id);
+    renderDebtCards(activeDespesasMonth);
+    renderDebtList(activeDespesasMonth);
+    buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
+    initTicker();
+  }
+
+  // ── Toggle pago ──────────────────────────────────────────
+
+  function togglePaid(id) {
+    toggleDebtPaid(activeDespesasMonth, id);
+    renderDebtCards(activeDespesasMonth);
+    renderDebtList(activeDespesasMonth);
+  }
+
+  // ── RECEITAS ─────────────────────────────────────────────
+
+  function selectReceitasMonth(i) {
+    activeReceitasMonth = i;
+    document.getElementById('receitas-months-view').style.display = 'none';
+    document.getElementById('receitas-detail-view').style.display = 'block';
+    document.getElementById('receitasMonthTitle').textContent = MONTH_FULL[i];
+    document.getElementById('receitasYearBadge').textContent  = new Date().getFullYear();
+    renderIncomeCards(i);
+    renderIncomeList(i);
+  }
+
+  function addIncome() {
+    var desc   = document.getElementById('incomeDesc').value.trim();
+    var amount = parseFloat(document.getElementById('incomeAmount').value);
+    var day    = parseInt(document.getElementById('incomeDay').value) || new Date().getDate();
+
+    if (!desc)                        { shakeInput('incomeDesc');   return; }
+    if (isNaN(amount) || amount <= 0) { shakeInput('incomeAmount'); return; }
+
+    addIncomeData({ monthIndex: activeReceitasMonth, desc: desc, amount: amount, day: day });
+
+    document.getElementById('incomeDesc').value   = '';
+    document.getElementById('incomeAmount').value = '';
+    document.getElementById('incomeDay').value    = '';
+
+    renderIncomeCards(activeReceitasMonth);
+    renderIncomeList(activeReceitasMonth);
+    buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
+  }
+
+  function removeIncome(id) {
+    deleteIncomeData(activeReceitasMonth, id);
+    renderIncomeCards(activeReceitasMonth);
+    renderIncomeList(activeReceitasMonth);
+    buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
+  }
+
+  // ── INVESTIMENTO ─────────────────────────────────────────
+
+  function selectInvestimentoMonth(i) {
+    activeInvestimentoMonth = i;
+    document.getElementById('investimento-months-view').style.display = 'none';
+    document.getElementById('investimento-detail-view').style.display = 'block';
+    document.getElementById('investimentoMonthTitle').textContent = MONTH_FULL[i];
+    document.getElementById('investimentoYearBadge').textContent  = new Date().getFullYear();
+    renderInvestmentGoalCard(i);
+    renderInvestmentList(i);
+  }
+
+  function addInvestment() {
+    var desc   = document.getElementById('investDesc').value.trim();
+    var amount = parseFloat(document.getElementById('investAmount').value);
+    var day    = parseInt(document.getElementById('investDay').value) || new Date().getDate();
+
+    if (!desc)                        { shakeInput('investDesc');   return; }
+    if (isNaN(amount) || amount <= 0) { shakeInput('investAmount'); return; }
+
+    addInvestmentData({ monthIndex: activeInvestimentoMonth, desc: desc, amount: amount, day: day });
+
+    document.getElementById('investDesc').value   = '';
+    document.getElementById('investAmount').value = '';
+    document.getElementById('investDay').value    = '';
+
+    renderInvestmentGoalCard(activeInvestimentoMonth);
+    renderInvestmentList(activeInvestimentoMonth);
+    buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
+    renderAnnualInvestCard();
+  }
+
+  function removeInvestment(id) {
+    deleteInvestmentData(activeInvestimentoMonth, id);
+    renderInvestmentGoalCard(activeInvestimentoMonth);
+    renderInvestmentList(activeInvestimentoMonth);
+    buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
+    renderAnnualInvestCard();
+  }
+
+  // ── Abre dashboard mensal a partir do Gerencial ─────────
+
+  function openMensal(monthIndex) {
+    // Esconde todas as abas incluindo gerencial
+    var tabs = ['despesas','receitas','investimento','gerencial','mensal'];
+    tabs.forEach(function(t) {
+      var el  = document.getElementById('tab-' + t);
+      var btn = document.getElementById('nav-' + t);
+      if (el)  el.style.display = (t === 'mensal') ? 'block' : 'none';
+      // Remove active de todos os botões da nav
+      if (btn) btn.className = 'nav-btn';
+    });
+    renderMensal(monthIndex);
+  }
+
+  function backToGerencial() {
+    // Esconde mensal explicitamente antes de mostrar gerencial
+    var mensalEl = document.getElementById('tab-mensal');
+    if (mensalEl) mensalEl.style.display = 'none';
+    setTab('gerencial');
+  }
+
+  // ── API pública ──────────────────────────────────────────
+
+  return {
+    init:               init,
+    setTab:             setTab,
+    backToMonths:       backToMonths,
+    openMensal:         openMensal,
+    backToGerencial:    backToGerencial,
+    onDebtCredorChange: onDebtCredorChange,
+    addDebt:            submitDebt,
+    addIncome:          addIncome,
+    removeIncome:       removeIncome,
+    addInvestment:      addInvestment,
+    removeInvestment:   removeInvestment,
+    removeDebt:         removeDebt,
+    togglePaid:         togglePaid
+  };
 
 })();
 
