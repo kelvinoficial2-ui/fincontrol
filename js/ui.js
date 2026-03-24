@@ -1,279 +1,256 @@
 // ============================================================
-//  ui.js — Renderização e manipulação do DOM
+//  ui.js — Renderização DOM
 // ============================================================
 
-function buildMonthButtons(activeMonth, onSelect) {
-  var grid = document.getElementById('monthsGrid');
+// ── Meses grid genérico ────────────────────────────────────
+
+function buildMonthGrid(containerId, activeMonth, onSelect, hasDataFn) {
+  var grid = document.getElementById(containerId);
+  if (!grid) return;
   grid.innerHTML = '';
   MONTHS.forEach(function(m, i) {
     var btn = document.createElement('button');
     btn.className = 'month-btn' + (i === activeMonth ? ' active' : '');
-    btn.id = 'month-' + i;
+    btn.id = containerId + '-' + i;
     btn.textContent = m;
+    if (hasDataFn && hasDataFn(i)) btn.classList.add('has-data');
     btn.onclick = function() { onSelect(i); };
     grid.appendChild(btn);
   });
 }
 
-function setActiveMonthButton(index) {
-  document.querySelectorAll('.month-btn').forEach(function(b) {
-    b.classList.remove('active');
-  });
-  var btn = document.getElementById('month-' + index);
-  if (btn) btn.classList.add('active');
+// ── Cards de dívidas ───────────────────────────────────────
+
+function renderDebtCards(monthIndex) {
+  var s   = getDebtSummary(monthIndex);
+  var pct = s.total > 0 ? Math.round((s.paid / s.total) * 100) : 0;
+
+  document.getElementById('debtTotal').textContent     = formatCurrency(s.total);
+  document.getElementById('debtRemaining').textContent = formatCurrency(s.remaining);
+  document.getElementById('debtPaid').textContent      = formatCurrency(s.paid);
+
+  var bar   = document.getElementById('paymentBar');
+  var label = document.getElementById('paymentLabel');
+  if (bar)   bar.style.width  = pct + '%';
+  if (label) label.textContent = pct + '% pago';
 }
 
-function updateMonthDots() {
-  MONTHS.forEach(function(_, i) {
-    var btn = document.getElementById('month-' + i);
-    if (!btn) return;
-    if (hasData(i)) btn.classList.add('has-data');
-    else btn.classList.remove('has-data');
-  });
-}
+// ── Lista de dívidas ───────────────────────────────────────
 
-// ── Cards de resumo ────────────────────────────────────────
+function renderDebtList(monthIndex) {
+  var list  = document.getElementById('debtList');
+  var title = document.getElementById('debtListTitle');
+  var debts = getDebts(monthIndex);
 
-function updateSummaryCards(monthIndex) {
-  var s = getSummary(monthIndex);
-  document.getElementById('totalIncome').textContent  = formatCurrency(s.income);
-  document.getElementById('totalExpense').textContent = formatCurrency(s.expense);
-  renderBalanceCard(s.balance);
-  renderInvestmentCard(s.investment);
-  renderHealthStatus(s);
-}
+  if (title) title.textContent = 'Dívidas — ' + MONTH_FULL[monthIndex];
 
-function renderInvestmentCard(invested) {
-  var goal    = INVESTMENT_GOAL;
-  var pct     = Math.min((invested / goal) * 100, 100);
-  var reached = invested >= goal;
-  var over    = invested > goal;
-  var overPct = over ? Math.round(((invested - goal) / goal) * 100) : 0;
-
-  var card  = document.getElementById('investmentCard');
-  var label = document.getElementById('investmentLabel');
-  var val   = document.getElementById('totalInvestment');
-  var sub   = document.getElementById('investmentSub');
-  var bar   = document.getElementById('investmentBar');
-
-  if (!card) return;
-
-  card.className = 'card investment' + (reached ? ' goal-reached' : '');
-
-  if (label) {
-    label.textContent = over
-      ? '+' + overPct + '% acima da meta'
-      : reached
-        ? '✓ Meta atingida!'
-        : '◈ Investimentos · Meta: ' + formatCurrency(goal);
-  }
-  if (val) val.textContent = formatCurrency(invested);
-  if (sub) {
-    sub.textContent = reached
-      ? formatCurrency(invested) + ' / ' + formatCurrency(goal)
-      : 'Faltam ' + formatCurrency(goal - invested) + ' para a meta';
-  }
-  if (bar) bar.style.width = pct + '%';
-}
-
-// ── Saldo (negativo fica vermelho) ─────────────────────────
-
-function renderBalanceCard(balance) {
-  var el   = document.getElementById('totalBalance');
-  var card = document.getElementById('balanceCard');
-  if (!el) return;
-
-  var negative = balance < 0;
-  el.textContent = (negative ? '-' : '') + formatCurrency(balance);
-  if (card) {
-    card.className = 'card balance' + (negative ? ' negative' : '');
-  }
-  el.className = 'card-value' + (negative ? ' negative-value' : '');
-}
-
-// ── Status de Saúde Financeira ─────────────────────────────
-
-function renderHealthStatus(s) {
-  var el = document.getElementById('healthStatus');
-  if (!el) return;
-
-  // Sem dados
-  if (s.income === 0 && s.expense === 0) {
-    el.className = 'health-bar empty';
-    el.innerHTML =
-      '<div class="health-dot"></div>' +
-      '<div class="health-info">' +
-        '<span class="health-label">Sem dados</span>' +
-        '<span class="health-msg">Adicione seus lançamentos do mês</span>' +
-      '</div>';
-    return;
-  }
-
-  var ratio  = s.income > 0 ? s.expense / s.income : 999;
-  var status, label, msg, cls;
-
-  if (s.balance < 0) {
-    status = 'critical'; cls = 'health-bar critical';
-    label  = '🔴 Crítico';
-    msg    = 'Suas despesas superam sua receita em ' + formatCurrency(Math.abs(s.balance));
-  } else if (ratio >= 0.8) {
-    status = 'warning'; cls = 'health-bar warning';
-    label  = '🟡 Atenção';
-    msg    = 'Suas despesas estão em ' + Math.round(ratio * 100) + '% da sua receita';
-  } else {
-    status = 'healthy'; cls = 'health-bar healthy';
-    label  = '🟢 Saudável';
-    msg    = 'Você está guardando ' + Math.round((1 - ratio) * 100) + '% da sua receita';
-  }
-
-  el.className = cls;
-  el.innerHTML =
-    '<div class="health-dot"></div>' +
-    '<div class="health-info">' +
-      '<span class="health-label">' + label + '</span>' +
-      '<span class="health-msg">' + msg + '</span>' +
-    '</div>' +
-    '<div class="health-gauge">' +
-      '<div class="health-gauge-fill" style="width:' + Math.min(ratio * 100, 100) + '%"></div>' +
-    '</div>';
-}
-
-// ── Ranking de Ofensores ───────────────────────────────────
-
-function renderRanking(monthIndex) {
-  var txs     = getTransactions(monthIndex);
-  var section = document.getElementById('rankingSection');
-  var list    = document.getElementById('rankingList');
-  var period  = document.getElementById('rankingPeriod');
-
-  if (period) period.textContent = MONTH_FULL[monthIndex];
-
-  // Filtra só despesas
-  var expenses = txs.filter(function(t) { return t.type === 'expense'; });
-
-  if (!expenses.length) {
-    section.style.display = 'none';
-    return;
-  }
-  section.style.display = 'block';
-
-  // Agrupa por credor (ou descrição se não tiver credor)
-  var map = {};
-  expenses.forEach(function(t) {
-    var key   = t.credorId || ('__' + t.desc);
-    var label = t.credorId
-      ? (getCredorById(t.credorId) ? getCredorById(t.credorId).nome : t.desc)
-      : t.desc;
-    var logo  = t.credorId && getCredorById(t.credorId)
-      ? getCredorById(t.credorId).logo
-      : null;
-
-    if (!map[key]) map[key] = { label: label, logo: logo, total: 0 };
-    map[key].total += t.amount;
-  });
-
-  // Ordena por total desc
-  var sorted = Object.values(map).sort(function(a, b) { return b.total - a.total; });
-
-  // Máximo para calcular a barra
-  var max = sorted[0].total;
-
-  // Medalhas para top 3
-  var medals = ['🥇', '🥈', '🥉'];
-
-  list.innerHTML = sorted.map(function(item, i) {
-    var pct    = Math.round((item.total / max) * 100);
-    var medal  = medals[i] || '';
-    var logoHTML = item.logo
-      ? '<img src="' + item.logo + '" alt="' + item.label + '" class="ranking-logo">'
-      : '<div class="ranking-logo-fallback">?</div>';
-
-    return '<div class="ranking-item">' +
-        '<div class="ranking-pos">' + (medal || ('#' + (i + 1))) + '</div>' +
-        logoHTML +
-        '<div class="ranking-info">' +
-          '<div class="ranking-name">' + item.label + '</div>' +
-          '<div class="ranking-bar-track">' +
-            '<div class="ranking-bar-fill" style="width:' + pct + '%"></div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="ranking-total">' + formatCurrency(item.total) + '</div>' +
-      '</div>';
-  }).join('');
-}
-
-// ── Lista de transações ────────────────────────────────────
-
-function renderTransactions(monthIndex) {
-  var list = document.getElementById('transactionList');
-  var txs  = getTransactions(monthIndex);
-
-  document.getElementById('transactionTitle').textContent =
-    'Lançamentos — ' + MONTH_FULL[monthIndex];
-
-  if (!txs.length) {
+  if (!debts.length) {
     list.innerHTML =
       '<div class="empty-state">' +
-        '<span class="emoji">📂</span>' +
-        'Nenhum lançamento neste mês.<br>Adicione sua primeira transação →' +
+        '<span class="emoji">📋</span>' +
+        'Nenhuma dívida cadastrada.<br>Adicione suas dívidas →' +
       '</div>';
     return;
   }
 
-  var iconMap = { income: '↑', expense: '↓', investment: '◈' };
-
-  list.innerHTML = txs.map(function(t) {
-    var credor = t.credorId ? getCredorById(t.credorId) : null;
-    var iconHTML = credor
+  list.innerHTML = debts.map(function(t) {
+    var credor   = t.credorId ? getCredorById(t.credorId) : null;
+    var label    = credor ? credor.nome + (t.desc ? ' — ' + t.desc : '') : t.desc;
+    var logoHTML = credor
       ? '<img src="' + credor.logo + '" alt="' + credor.nome + '" class="tx-credor-logo">'
-      : '<div class="tx-icon ' + t.type + '">' + (iconMap[t.type] || '·') + '</div>';
-    var label = credor ? credor.nome + ' — ' + t.desc : t.desc;
+      : '<div class="tx-icon expense">↓</div>';
 
-    return '<div class="transaction-item">' +
-        iconHTML +
+    return '<div class="debt-item' + (t.paid ? ' paid' : '') + '">' +
+        logoHTML +
         '<div class="tx-info">' +
           '<div class="tx-desc">' + label + '</div>' +
-          '<div class="tx-date">Dia ' + String(t.day).padStart(2,'0') + ' · ' + MONTH_FULL[monthIndex] + '</div>' +
+          '<div class="tx-date">Vence dia ' + String(t.day).padStart(2,'0') + ' · ' + MONTH_FULL[monthIndex] + '</div>' +
         '</div>' +
-        '<div class="tx-amount ' + t.type + '">' +
-          (t.type === 'income' ? '+' : '-') + formatCurrency(t.amount) +
-        '</div>' +
-        '<button class="tx-delete" onclick="App.remove(' + t.id + ')" title="Remover">✕</button>' +
+        '<div class="debt-amount' + (t.paid ? ' paid' : '') + '">' + formatCurrency(t.amount) + '</div>' +
+        '<button class="check-btn' + (t.paid ? ' checked' : '') + '" onclick="App.togglePaid(' + t.id + ')" title="' + (t.paid ? 'Marcar como pendente' : 'Marcar como pago') + '">' +
+          (t.paid ? '✓' : '○') +
+        '</button>' +
+        '<button class="tx-delete" onclick="App.removeDebt(' + t.id + ')" title="Remover">✕</button>' +
       '</div>';
   }).join('');
 }
 
-// ── Preview logo no formulário ─────────────────────────────
+// ── Preview credor no form de dívidas ──────────────────────
 
-function updateCredorLogoPreview(credorId) {
-  var box = document.getElementById('credorLogoBox');
-  var img = document.getElementById('credorLogo');
+function updateDebtCredorPreview(credorId) {
+  var box = document.getElementById('debtCredorLogoBox');
+  var img = document.getElementById('debtCredorLogo');
   if (!box || !img) return;
-  if (!credorId) {
-    box.classList.remove('has-logo');
-    img.src = '';
-    return;
-  }
+  if (!credorId) { box.classList.remove('has-logo'); img.src = ''; return; }
   var credor = getCredorById(credorId);
-  if (credor) {
-    img.src = credor.logo;
-    box.classList.add('has-logo');
-  } else {
-    box.classList.remove('has-logo');
-    img.src = '';
-  }
+  if (credor) { img.src = credor.logo; box.classList.add('has-logo'); }
+  else        { box.classList.remove('has-logo'); img.src = ''; }
 }
 
-function setTypeActive(type) {
-  ['income','expense','investment'].forEach(function(t) {
-    var btn = document.getElementById('btn-' + t);
-    if (btn) btn.className = 'type-btn ' + t + (t === type ? ' active' : '');
-  });
-}
+// ── Shake input ────────────────────────────────────────────
 
 function shakeInput(id) {
   var el = document.getElementById(id);
   if (!el) return;
   el.style.borderColor = '#ff6b6b';
   setTimeout(function() { el.style.borderColor = ''; }, 1200);
+}
+
+// ── Receitas ───────────────────────────────────────────────
+
+function renderIncomeCards(monthIndex) {
+  var total  = getIncomeSummary(monthIndex);
+  var debts  = getDebtSummary(monthIndex);
+  var saldo  = total - debts.total;
+  var neg    = saldo < 0;
+
+  document.getElementById('incomeTotal').textContent = formatCurrency(total);
+
+  var saldoEl   = document.getElementById('incomeSaldo');
+  var saldoCard = document.getElementById('incomeSaldoCard');
+  saldoEl.textContent = (neg ? '-' : '') + formatCurrency(saldo);
+  saldoEl.className   = 'card-value' + (neg ? ' negative-value' : '');
+  if (saldoCard) saldoCard.className = 'card balance' + (neg ? ' negative' : '');
+}
+
+function renderIncomeList(monthIndex) {
+  var list    = document.getElementById('incomeList');
+  var title   = document.getElementById('incomeListTitle');
+  var incomes = getIncomes(monthIndex);
+
+  if (title) title.textContent = 'Receitas — ' + MONTH_FULL[monthIndex];
+
+  if (!incomes.length) {
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<span class="emoji">💰</span>' +
+        'Nenhuma receita cadastrada.<br>Adicione suas receitas →' +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = incomes.map(function(t) {
+    return '<div class="debt-item">' +
+        '<div class="tx-icon income">↑</div>' +
+        '<div class="tx-info">' +
+          '<div class="tx-desc">' + t.desc + '</div>' +
+          '<div class="tx-date">Dia ' + String(t.day).padStart(2,'0') + ' · ' + MONTH_FULL[monthIndex] + '</div>' +
+        '</div>' +
+        '<div class="income-amount">+' + formatCurrency(t.amount) + '</div>' +
+        '<button class="tx-delete" onclick="App.removeIncome(' + t.id + ')" title="Remover">✕</button>' +
+      '</div>';
+  }).join('');
+}
+
+// ── Investimento ───────────────────────────────────────────
+
+function renderInvestmentGoalCard(monthIndex) {
+  var total   = getInvestmentTotal(monthIndex);
+  var goal    = INVESTMENT_GOAL;
+  var reached = total >= goal;
+  var over    = total > goal;
+  var pct     = goal > 0 ? Math.round((total / goal) * 100) : 0;
+  var overPct = over ? Math.round(((total - goal) / goal) * 100) : 0;
+
+  // Card wrapper
+  var card = document.getElementById('investGoalCard');
+  if (card) card.className = 'invest-goal-card' + (reached ? ' reached' : over ? ' over' : '');
+
+  // Label
+  var label = document.getElementById('investGoalLabel');
+  if (label) label.textContent = over
+    ? '+' + overPct + '% acima da meta 🚀'
+    : reached ? '✓ Meta atingida!' : '◈ Investimento do Mês';
+
+  // Valor
+  var val = document.getElementById('investGoalValue');
+  if (val) val.textContent = formatCurrency(total);
+
+  // Sub
+  var sub = document.getElementById('investGoalSub');
+  if (sub) {
+    if (over)         sub.textContent = '+' + formatCurrency(total - goal) + ' além da meta mensal';
+    else if (reached) sub.textContent = 'Meta de ' + formatCurrency(goal) + ' batida!';
+    else              sub.textContent = 'Faltam ' + formatCurrency(goal - total) + ' para a meta';
+  }
+
+  // % badge
+  var pctEl = document.getElementById('investGoalPct');
+  if (pctEl) {
+    pctEl.textContent  = pct + '%';
+    pctEl.className    = 'invest-goal-pct' + (reached ? ' reached' : '');
+  }
+
+  // Barra — escala até 2x a meta para mostrar excesso
+  var scale   = goal * 2;
+  var barPct  = Math.min((total / scale) * 100, 100);
+  var bar     = document.getElementById('investGoalBar');
+  if (bar) bar.style.width = barPct + '%';
+
+  // Legenda max
+  var maxEl = document.getElementById('investGoalMax');
+  if (maxEl) maxEl.textContent = formatCurrency(scale);
+
+  // Título da lista
+  var listTitle = document.getElementById('investListTitle');
+  if (listTitle) listTitle.textContent = 'Investimentos — ' + MONTH_FULL[monthIndex];
+}
+
+function renderInvestmentList(monthIndex) {
+  var list  = document.getElementById('investList');
+  var items = getInvestments(monthIndex);
+
+  if (!items.length) {
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<span class="emoji">📈</span>' +
+        'Nenhum investimento cadastrado.<br>Adicione seus aportes →' +
+      '</div>';
+    return;
+  }
+
+  var total = getInvestmentTotal(monthIndex);
+
+  list.innerHTML = items.map(function(t) {
+    var pct = total > 0 ? Math.round((t.amount / INVESTMENT_GOAL) * 100) : 0;
+    return '<div class="debt-item">' +
+        '<div class="tx-icon investment">◈</div>' +
+        '<div class="tx-info">' +
+          '<div class="tx-desc">' + t.desc + '</div>' +
+          '<div class="tx-date">Dia ' + String(t.day).padStart(2,'0') + ' · ' + MONTH_FULL[monthIndex] + '</div>' +
+        '</div>' +
+        '<div class="invest-item-pct">' + pct + '% da meta</div>' +
+        '<div class="invest-item-amount">+' + formatCurrency(t.amount) + '</div>' +
+        '<button class="tx-delete" onclick="App.removeInvestment(' + t.id + ')" title="Remover">✕</button>' +
+      '</div>';
+  }).join('');
+}
+
+function renderAnnualInvestCard() {
+  var total      = 0;
+  var goalAnual  = INVESTMENT_GOAL * 12;
+  var mesesBatidos = 0;
+
+  for (var i = 0; i < 12; i++) {
+    var v = getInvestmentTotal(i);
+    total += v;
+    if (v >= INVESTMENT_GOAL) mesesBatidos++;
+  }
+
+  var pct  = Math.min(Math.round((total / goalAnual) * 100), 999);
+  var over = total > goalAnual;
+
+  var totalEl  = document.getElementById('investAnnualTotal');
+  var subEl    = document.getElementById('investAnnualSub');
+  var pctEl    = document.getElementById('investAnnualPct');
+  var barEl    = document.getElementById('investAnnualBar');
+  var monthsEl = document.getElementById('investAnnualMonths');
+  var card     = document.getElementById('investAnnualCard');
+
+  if (totalEl)  totalEl.textContent  = formatCurrency(total);
+  if (subEl)    subEl.textContent    = 'de ' + formatCurrency(goalAnual) + ' · meta anual';
+  if (pctEl)    pctEl.textContent    = pct + '%';
+  if (barEl)    barEl.style.width    = Math.min((total / goalAnual) * 100, 100) + '%';
+  if (monthsEl) monthsEl.textContent = mesesBatidos + ' de 12 meses com meta batida';
+  if (card)     card.className       = 'invest-annual-card' + (over ? ' over' : (total > 0 ? ' partial' : ''));
 }
