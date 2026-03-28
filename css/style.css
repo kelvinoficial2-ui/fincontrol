@@ -491,6 +491,130 @@ header {
 
 .ticker-offline { opacity: 0.5; }
 
+/* ── Tela de Login ───────────────────────────────────────── */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeUp 0.5s ease both;
+}
+
+#loginScreen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,255,176,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,255,176,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 380px;
+  width: 90%;
+  position: relative;
+  z-index: 1;
+}
+
+.login-logo {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.login-logo span { color: var(--accent); }
+
+.login-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -0.5rem;
+}
+
+.login-btn-google {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  color: #1f1f1f;
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem 1.5rem;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+.login-btn-google:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.login-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ── User badge ──────────────────────────────────────────── */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-badge span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.2rem;
+  transition: color 0.2s;
+}
+.logout-btn:hover { color: var(--expense); }
+
 /* ── Sync Badge ──────────────────────────────────────────── */
 .sync-badge {
   font-family: 'DM Mono', monospace;
