@@ -145,9 +145,11 @@ function getSummary(monthIndex) {
   var investment = getInvestmentTotal(monthIndex);
   return {
     income:     income,
-    expense:    summary.total,
+    expense:    summary.total,   // total cadastrado (para exibir no card)
+    paid:       summary.paid,    // total pago (flagado)
+    remaining:  summary.remaining,
     investment: investment,
-    balance:    income - summary.total
+    balance:    income - summary.paid  // saldo respeita só o que foi pago
   };
 }
 
