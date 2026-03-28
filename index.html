@@ -27,6 +27,7 @@
         <button class="nav-btn"        id="nav-investimento" onclick="App.setTab('investimento')">Investimento</button>
         <button class="nav-btn"        id="nav-gerencial"   onclick="App.setTab('gerencial')">Gerencial</button>
       </nav>
+      <div class="sync-badge" id="syncBadge" style="opacity:0">☁ Salvo</div>
       <div class="year-badge" id="yearBadge">2026</div>
     </div>
   </header>
@@ -537,6 +538,10 @@
   }
 </script>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
 <script src="js/credores.js"></script>
 <script src="js/data.js"></script>
 <script src="js/ui.js"></script>
