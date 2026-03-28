@@ -25,14 +25,27 @@ var App = (function() {
 
   function setTab(tab) {
     activeTab = tab;
-    // inclui 'mensal' para garantir que some ao trocar de aba
     var tabs = ['despesas','receitas','investimento','gerencial','mensal'];
+
     tabs.forEach(function(t) {
       var el  = document.getElementById('tab-' + t);
       var btn = document.getElementById('nav-' + t);
-      if (el)  el.style.display  = (t === tab) ? 'block' : 'none';
-      if (btn) btn.className = 'nav-btn' + (t === tab ? ' active' : '');
+      var bBtn = document.getElementById('bnav-' + t);
+
+      if (el) {
+        if (t === tab) {
+          el.style.display = 'block';
+          el.classList.remove('tab-slide-out');
+          el.classList.add('tab-slide-in');
+        } else {
+          el.classList.remove('tab-slide-in');
+          el.style.display = 'none';
+        }
+      }
+      if (btn)  btn.className  = 'nav-btn'  + (t === tab ? ' active' : '');
+      if (bBtn) bBtn.className = 'bottom-nav-btn' + (t === tab ? ' active' : '');
     });
+
     if (tab === 'gerencial')    renderGerencial();
     if (tab === 'investimento') renderAnnualInvestCard();
   }
@@ -208,14 +221,17 @@ var App = (function() {
   // ── Abre dashboard mensal a partir do Gerencial ─────────
 
   function openMensal(monthIndex) {
-    // Esconde todas as abas incluindo gerencial
     var tabs = ['despesas','receitas','investimento','gerencial','mensal'];
     tabs.forEach(function(t) {
-      var el  = document.getElementById('tab-' + t);
-      var btn = document.getElementById('nav-' + t);
-      if (el)  el.style.display = (t === 'mensal') ? 'block' : 'none';
-      // Remove active de todos os botões da nav
-      if (btn) btn.className = 'nav-btn';
+      var el   = document.getElementById('tab-' + t);
+      var btn  = document.getElementById('nav-' + t);
+      var bBtn = document.getElementById('bnav-' + t);
+      if (el)  {
+        el.style.display = (t === 'mensal') ? 'block' : 'none';
+        if (t === 'mensal') el.classList.add('tab-slide-in');
+      }
+      if (btn)  btn.className  = 'nav-btn';
+      if (bBtn) bBtn.className = 'bottom-nav-btn' + (t === 'gerencial' ? ' active' : '');
     });
     renderMensal(monthIndex);
   }
