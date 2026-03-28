@@ -1335,18 +1335,29 @@ header {
 
   /* Esconde nav do topo no mobile */
   .main-nav {
+    display: none !important;
+  }
+
+  /* Esconde também o year badge no mobile para não flutuar sozinho */
+  .year-badge {
     display: none;
   }
 
   /* Padding no container para não ficar atrás do bottom nav */
   .container {
-    padding-bottom: 80px;
+    padding-bottom: 90px;
   }
 
   /* Header mobile mais compacto */
   header {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
+    align-items: center;
+  }
+
+  /* Header só mostra logo e user badge no mobile */
+  .header-right {
+    gap: 0.5rem;
   }
 
   .logo {
