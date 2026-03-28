@@ -14,8 +14,9 @@ var FIREBASE_CONFIG = {
 var db             = null;
 var currentUser    = null;
 var _saveTimeout   = null;
-var _dataLoaded    = false;  // flag: Firebase já carregou uma vez
-var _userModified  = false;  // flag: usuário modificou dados após o load
+var _dataLoaded    = false;
+var _userModified  = false;
+var _pendingSave   = false;  // tem dados locais esperando para salvar
 
 // ── Inicializa ─────────────────────────────────────────────
 
@@ -82,6 +83,8 @@ function saveToFirebase() {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   })
   .then(function() {
+    _pendingSave  = false;
+    _userModified = false;
     showSyncBadge('saved');
   })
   .catch(function(err) {
@@ -99,17 +102,24 @@ function loadFromFirebase() {
 
   db.collection('usuarios').doc(currentUser.uid).get()
     .then(function(doc) {
-      // Só carrega se o usuário ainda não modificou dados nesta sessão
-      if (!_userModified) {
-        if (doc.exists && doc.data().data) {
-          localStorage.setItem('fincontrol_v2', JSON.stringify(doc.data().data));
-          showSyncBadge('loaded');
-        } else {
-          showSyncBadge('new');
-        }
-      }
       _dataLoaded = true;
-      if (typeof App !== 'undefined') App.refresh();
+
+      if (_userModified) {
+        // Usuário já mexeu nos dados — empurra dados locais para o Firebase
+        console.log('[Firebase] Dados locais têm prioridade — salvando...');
+        saveToFirebase();
+        return;
+      }
+
+      if (doc.exists && doc.data().data) {
+        // Nenhuma modificação local — carrega do Firebase com segurança
+        localStorage.setItem('fincontrol_v2', JSON.stringify(doc.data().data));
+        showSyncBadge('loaded');
+        if (typeof App !== 'undefined') App.refresh();
+      } else {
+        showSyncBadge('new');
+        if (typeof App !== 'undefined') App.refresh();
+      }
     })
     .catch(function(err) {
       console.warn('[Firebase] Erro carregar:', err);
@@ -120,15 +130,21 @@ function loadFromFirebase() {
 // ── Schedule save (debounce 1.5s) ─────────────────────────
 
 function scheduleSave() {
-  if (!currentUser) return;
-  _userModified = true;  // usuário modificou dados — não deixa Firebase sobrescrever
+  // Marca que usuário modificou — Firebase não pode sobrescrever dados locais
+  _userModified = true;
+
+  if (!currentUser || !_dataLoaded) {
+    // Firebase ainda não terminou de carregar — agenda para depois
+    _pendingSave = true;
+    showSyncBadge('saving');
+    return;
+  }
+
   if (_saveTimeout) clearTimeout(_saveTimeout);
   showSyncBadge('saving');
   _saveTimeout = setTimeout(function() {
     saveToFirebase();
-    // Após salvar com sucesso, reseta a flag
-    _userModified = false;
-  }, 1500);
+  }, 1000);
 }
 
 // ── UI — Tela de login ─────────────────────────────────────
