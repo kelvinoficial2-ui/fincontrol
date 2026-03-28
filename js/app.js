@@ -15,6 +15,7 @@ var App = (function() {
     document.getElementById('yearBadge').textContent = new Date().getFullYear();
     buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
     initTicker();
+    if (typeof initFirebase === 'function') initFirebase();
     buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
     buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
     setTab('despesas');
@@ -54,6 +55,7 @@ var App = (function() {
       document.getElementById('despesas-months-view').style.display = 'block';
       buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
     initTicker();
+    if (typeof initFirebase === 'function') initFirebase();
     }
     if (section === 'receitas') {
       document.getElementById('receitas-detail-view').style.display = 'none';
@@ -103,6 +105,7 @@ var App = (function() {
     renderDebtList(activeDespesasMonth);
     buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
     initTicker();
+    if (typeof initFirebase === 'function') initFirebase();
   }
 
   // ── Remover dívida ───────────────────────────────────────
@@ -113,6 +116,7 @@ var App = (function() {
     renderDebtList(activeDespesasMonth);
     buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
     initTicker();
+    if (typeof initFirebase === 'function') initFirebase();
   }
 
   // ── Toggle pago ──────────────────────────────────────────
@@ -223,6 +227,15 @@ var App = (function() {
     setTab('gerencial');
   }
 
+  // ── Refresh (chamado pelo Firebase após carregar dados) ──────
+
+  function refresh() {
+    buildMonthGrid('despesasMonthsGrid', activeDespesasMonth, selectDespesasMonth, hasDebtData);
+    buildMonthGrid('receitasMonthsGrid', activeReceitasMonth, selectReceitasMonth, hasIncomeData);
+    buildMonthGrid('investimentoMonthsGrid', activeInvestimentoMonth, selectInvestimentoMonth, hasInvestimentoData);
+    setTab(activeTab);
+  }
+
   // ── API pública ──────────────────────────────────────────
 
   return {
@@ -230,6 +243,7 @@ var App = (function() {
     setTab:             setTab,
     backToMonths:       backToMonths,
     openMensal:         openMensal,
+    refresh:            refresh,
     backToGerencial:    backToGerencial,
     onDebtCredorChange: onDebtCredorChange,
     addDebt:            submitDebt,
