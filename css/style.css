@@ -1249,3 +1249,161 @@ header {
   .debt-summary { grid-template-columns: 1fr; }
   .g-invest-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE — Bottom Nav + Page Transitions
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Animação de transição entre abas ───────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.tab-slide-in {
+  animation: slideInRight 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* ── Bottom Navigation Bar ──────────────────────────────── */
+.bottom-nav {
+  display: none; /* escondido no desktop */
+}
+
+@media (max-width: 768px) {
+
+  /* Mostra bottom nav */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .bottom-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.6rem 0.25rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .bottom-nav-btn.active {
+    color: var(--accent);
+  }
+
+  /* Linha verde no topo do botão ativo */
+  .bottom-nav-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 0 0 4px 4px;
+    animation: slideInRight 0.2s ease both;
+  }
+
+  .bnav-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .bottom-nav-btn.active .bnav-icon {
+    transform: translateY(-1px);
+  }
+
+  .bnav-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Esconde nav do topo no mobile */
+  .main-nav {
+    display: none;
+  }
+
+  /* Padding no container para não ficar atrás do bottom nav */
+  .container {
+    padding-bottom: 80px;
+  }
+
+  /* Header mobile mais compacto */
+  header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  /* Ticker mais compacto */
+  .ticker-wrap {
+    margin-bottom: 1.25rem;
+  }
+
+  /* Cards em 2 colunas no mobile */
+  .summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .mensal-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Main area em coluna única */
+  .main-area {
+    grid-template-columns: 1fr;
+  }
+
+  /* Formulário ocupa tudo */
+  .form-panel {
+    width: 100%;
+  }
+
+  /* Card values menores */
+  .card-value {
+    font-size: 1.2rem;
+  }
+
+  /* Panels de investimento */
+  .mensal-panels {
+    grid-template-columns: 1fr;
+  }
+
+  .invest-goal-pct {
+    font-size: 1.8rem;
+  }
+
+  .invest-annual-card {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .invest-annual-right {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .invest-annual-track {
+    width: 100%;
+  }
+}
