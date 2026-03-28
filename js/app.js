@@ -27,23 +27,34 @@ var App = (function() {
     activeTab = tab;
     var tabs = ['despesas','receitas','investimento','gerencial','mensal'];
 
+    // Lista de abas válidas para o bottom nav (exclui mensal)
+    var navTabs = ['despesas','receitas','investimento','gerencial'];
+
     tabs.forEach(function(t) {
-      var el  = document.getElementById('tab-' + t);
-      var btn = document.getElementById('nav-' + t);
+      var el   = document.getElementById('tab-' + t);
+      var btn  = document.getElementById('nav-' + t);
       var bBtn = document.getElementById('bnav-' + t);
 
       if (el) {
         if (t === tab) {
           el.style.display = 'block';
           el.classList.remove('tab-slide-out');
+          // Força reflow para animação funcionar
+          void el.offsetWidth;
           el.classList.add('tab-slide-in');
         } else {
           el.classList.remove('tab-slide-in');
           el.style.display = 'none';
         }
       }
-      if (btn)  btn.className  = 'nav-btn'  + (t === tab ? ' active' : '');
-      if (bBtn) bBtn.className = 'bottom-nav-btn' + (t === tab ? ' active' : '');
+
+      // Top nav
+      if (btn) btn.className = 'nav-btn' + (t === tab ? ' active' : '');
+
+      // Bottom nav — só atualiza os 4 botões principais
+      if (bBtn) {
+        bBtn.className = 'bottom-nav-btn' + (t === tab ? ' active' : '');
+      }
     });
 
     if (tab === 'gerencial')    renderGerencial();
