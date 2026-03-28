@@ -491,6 +491,21 @@ header {
 
 .ticker-offline { opacity: 0.5; }
 
+/* ── Sync Badge ──────────────────────────────────────────── */
+.sync-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sync-saved  { background: rgba(79,255,176,0.1);  color: var(--income);     border: 1px solid rgba(79,255,176,0.3);  }
+.sync-error  { background: rgba(255,107,107,0.1); color: var(--expense);    border: 1px solid rgba(255,107,107,0.3); }
+.sync-saving { background: rgba(255,209,102,0.1); color: var(--investment); border: 1px solid rgba(255,209,102,0.3); }
+
 /* ── Nav principal ──────────────────────────────────────── */
 .header-right {
   display: flex;
