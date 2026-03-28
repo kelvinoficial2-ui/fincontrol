@@ -20,6 +20,7 @@ function loadData() {
 
 function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if (typeof scheduleSave === "function") scheduleSave();
 }
 
 function getRootData() {
