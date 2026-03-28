@@ -11,9 +11,11 @@ var FIREBASE_CONFIG = {
   appId:             "1:653477643370:web:a3f01f541a6e3ac9497613"
 };
 
-var db          = null;
-var currentUser = null;
-var _saveTimeout = null;
+var db             = null;
+var currentUser    = null;
+var _saveTimeout   = null;
+var _dataLoaded    = false;  // flag: Firebase já carregou uma vez
+var _userModified  = false;  // flag: usuário modificou dados após o load
 
 // ── Inicializa ─────────────────────────────────────────────
 
@@ -97,14 +99,17 @@ function loadFromFirebase() {
 
   db.collection('usuarios').doc(currentUser.uid).get()
     .then(function(doc) {
-      if (doc.exists && doc.data().data) {
-        localStorage.setItem('fincontrol_v2', JSON.stringify(doc.data().data));
-        showSyncBadge('loaded');
-        if (typeof App !== 'undefined') App.refresh();
-      } else {
-        showSyncBadge('new');
-        if (typeof App !== 'undefined') App.refresh();
+      // Só carrega se o usuário ainda não modificou dados nesta sessão
+      if (!_userModified) {
+        if (doc.exists && doc.data().data) {
+          localStorage.setItem('fincontrol_v2', JSON.stringify(doc.data().data));
+          showSyncBadge('loaded');
+        } else {
+          showSyncBadge('new');
+        }
       }
+      _dataLoaded = true;
+      if (typeof App !== 'undefined') App.refresh();
     })
     .catch(function(err) {
       console.warn('[Firebase] Erro carregar:', err);
@@ -116,9 +121,14 @@ function loadFromFirebase() {
 
 function scheduleSave() {
   if (!currentUser) return;
+  _userModified = true;  // usuário modificou dados — não deixa Firebase sobrescrever
   if (_saveTimeout) clearTimeout(_saveTimeout);
   showSyncBadge('saving');
-  _saveTimeout = setTimeout(saveToFirebase, 1500);
+  _saveTimeout = setTimeout(function() {
+    saveToFirebase();
+    // Após salvar com sucesso, reseta a flag
+    _userModified = false;
+  }, 1500);
 }
 
 // ── UI — Tela de login ─────────────────────────────────────
